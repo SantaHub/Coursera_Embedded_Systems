@@ -22,19 +22,24 @@
 #define __STATS_H__
 
 /* Add Your Declarations and Function Comments here */ 
-
+void print_array(unsigned char *ar, unsigned int size);
 /**
- * @brief <Add Brief Description of Function Here>
+ * @brief <Prints the array>
  *
- * <Add Extended Description Here>
+ * <Array pointer is itereated using a loop variable and printed>
  *
- * @param <Add InputName> <add description here>
- * @param <Add InputName> <add description here>
- * @param <Add InputName> <add description here>
- * @param <Add InputName> <add description here>
+ * @param <ar> <Unsigned char pointer>
+ * @param <size> <Unsigned Interger>
  *
- * @return <Add Return Informaiton here>
+ * @return <Void>
  */
 
+unsigned int find_maximum(unsigned char* ar, unsigned int size);
+unsigned int find_minimum(unsigned char* ar, unsigned int size);
+unsigned int find_mean(unsigned char* ar, unsigned int size);
+void sort_array(unsigned char* ar, unsigned int size);
+void quick_sort(unsigned char* ar, int low, int high );
+int part(unsigned char* ar, int low, int high);
+unsigned int find_median(unsigned char* ar, unsigned int size);
 
 #endif /* __STATS_H__ */
