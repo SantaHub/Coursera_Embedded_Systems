@@ -10,12 +10,17 @@
 #*****************************************************************************
 
 #------------------------------------------------------------------------------
-# <Put a Description Here>
+# Multi-Platform supported Make file.
 #
 # Use: make [TARGET] [PLATFORM-OVERRIDES]
 #
 # Build Targets:
-#      <Put a description of the supported targets here>
+#	%.i - Creates the preprocessing file using -E flag and Preprocessing CPPFLAGS
+#	%.o - Creates the object file using the -c FLAG and Preprocessing CPPFLAGS
+#	%.asm -  Creates the assembly file using -S FLAG and Preprocesing CPPFLAGS and Compiling CFLAGS
+#	build - Builds c1m2.map %.d %o c1m2.out
+#	all - Same as build
+# 	clean - Clean all the build files
 #
 # Platform Overrides:
 #      <Put a description of the supported Overrides here
@@ -31,51 +36,71 @@ FLAGS = -Wall \
 	-std=c99
 
 # Platform Overrides
-# PLATFORM = 
+
+PLATFORM = HOST
+TARGET=c1m2
+
 ifeq ($(PLATFORM),HOST)
 	CC=gcc
-	LD=ld
-	INC=-I ../include/CMSIS
-	PLATFORM_TARGET=HOST
-	# etc
-else
-	CC= arm-none-eabi-gcc
-	LD=arm-none=eabi-ld
-	INC= -I ../include/msp432
-	PLATFORM_TARGET=MSP432
+	CFLAGS=$(FLAGS) 
+	CPPFLAGS=-DHOST $(INCLUDES) #Prepro flags
+	LDFLAGS = -Wl,-Map=$().map 
 	# etc
 endif
 
-PFLAG := $(CC) $(INC) -D$(PLATFORM_TARGET)
+ifeq( $(PLATFORM),MSP432)
+	CC=arm-none-eabi-gcc
+	LINKER_FILE= -T ../msp432p401r.lds
 
-# Architectures Specific Flags
-LINKER_FILE=../msp432p401r.lds
-CPU=cortex-m4 
-ARCH=armv7e-m
-SPECS=nosys.specs
-
-
-# Compiler Flags and Defines
-# CC = 
-# LD = 
-LDFLAGS = -Wl, -Map=c1m2.map -T $(LINKER_FILE)
-CFLAGS = -mtune=$(CPU) -march=$(ARCH) --specs=$(SPECS)
-# CPPFLAGs = 
+	CPU=cortex-m4 
+	ARCH=armv7e-m
+	SPECS=nosys.specs
+	OFLAGS=-mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16
+	
+	SOURCES = main.c \
+		memory.c \
+		startup_msp432p401r_gcc.c \
+		interrupts_msp432p401r_gcc.c \
+		system_msp432p401r.c
+	
+	INCLUDES = -I../include/CMSIS \
+		 -I../include/msp432
+	
+	CFLAGS = $(FLAGS) $(OFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS)
+	CPPFLAGS = -DMSP432 $(INCLUDES) #Prepro flags
+	LDFLAGS = -Wl,-Map=$().map 	
+	# etc
+endif
 
 OBJS = $(SOURCES : .c=.o)
+DEPS = $(SOURCES : .c=.d)
+ASM = $(SOURCES : .c=.asm)
+PRE = $(SOURCES : .c=.i)
+
+
+%.i : %.c:
+	$(CC) -E $< $(CPPFLAGS) 
+
+%d : %.c
+	$(CC) -E -M $< $(CPPFLAGS) -o $@
 
 %.o : %.c
 	$(CC) -c $< $(CFLAGS) -o $@
 
-.PHONY: build
-build : all
+%.asm : %.c
+	$(CC) -S $< $(CPPFLAGS) $(CFLAGS) -o $@
 
-.PHONY: all
-all : c1m2.out
+.PHONY : compile-all
+compile-all : $(OBJS)
+
+.PHONY: build
+build : $(DEPS)
+build : $(TARGET).out
+
+$(TARGET).out: $(OBJS)
+	$(CC) $(OBJS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+
 
 .PHONY: clean
 clean :
-	rm -f $(OBJS) c1m2.out c1m2.map
-
-c1m2.out: $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) $(LDFLAGS) -o $@
+	rm -f $(OBJS) $(DEPS) $(ASM) $(PRE) $(TARGET).out $(TARGET).map
