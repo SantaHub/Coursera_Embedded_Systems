@@ -48,7 +48,7 @@ ifeq ($(PLATFORM),HOST)
 	# etc
 endif
 
-ifeq( $(PLATFORM),MSP432)
+ifeq ( $(PLATFORM),MSP432)
 	CC=arm-none-eabi-gcc
 	LINKER_FILE= -T ../msp432p401r.lds
 
@@ -78,7 +78,7 @@ ASM = $(SOURCES : .c=.asm)
 PRE = $(SOURCES : .c=.i)
 
 
-%.i : %.c:
+%.i : %.c
 	$(CC) -E $< $(CPPFLAGS) 
 
 %d : %.c
