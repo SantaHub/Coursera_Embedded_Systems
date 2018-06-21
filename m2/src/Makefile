@@ -18,12 +18,13 @@
 #	%.i - Creates the preprocessing file using -E flag and Preprocessing CPPFLAGS
 #	%.o - Creates the object file using the -c FLAG and Preprocessing CPPFLAGS
 #	%.asm -  Creates the assembly file using -S FLAG and Preprocesing CPPFLAGS and Compiling CFLAGS
+# 	%.d - Preprocess the dependencies using the -E Flag, -M Flags and Preprocessing CPPFLAGS
 #	build - Builds c1m2.map %.d %o c1m2.out
 #	all - Same as build
 # 	clean - Clean all the build files
 #
 # Platform Overrides:
-#      <Put a description of the supported Overrides here
+#     MSP432 and Host platform 
 #
 #------------------------------------------------------------------------------
 include sources.mk
@@ -63,7 +64,8 @@ ifeq ($(PLATFORM),MSP432)
 		system_msp432p401r.c
 	
 	INCLUDES = -I../include/CMSIS \
-		 -I../include/msp432
+		 -I../include/msp432 \
+		 -I ../include/common
 	
 	CFLAGS = $(FLAGS) $(OFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS)
 	CPPFLAGS = -DMSP432 $(INCLUDES) #Prepro flags
@@ -98,7 +100,7 @@ build : $(DEPS)
 build : $(TARGET).out
 
 $(TARGET).out: $(OBJS)
-	$(CC) $(OBJS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+	$(CC) $(OBJS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@ 
 
 
 .PHONY:clean
