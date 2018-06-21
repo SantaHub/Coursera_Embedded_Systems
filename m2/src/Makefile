@@ -36,7 +36,6 @@ FLAGS = -Wall \
 	-std=c99
 
 # Platform Overrides
-
 PLATFORM = HOST
 TARGET=c1m2
 
@@ -44,11 +43,11 @@ ifeq ($(PLATFORM),HOST)
 	CC=gcc
 	CFLAGS=$(FLAGS) 
 	CPPFLAGS=-DHOST $(INCLUDES) #Prepro flags
-	LDFLAGS = -Wl,-Map=$().map 
+	LDFLAGS = -Wl,-Map=$(TARGET).map 
 	# etc
 endif
 
-ifeq ( $(PLATFORM),MSP432)
+ifeq ($(PLATFORM),MSP432)
 	CC=arm-none-eabi-gcc
 	LINKER_FILE= -T ../msp432p401r.lds
 
@@ -68,32 +67,33 @@ ifeq ( $(PLATFORM),MSP432)
 	
 	CFLAGS = $(FLAGS) $(OFLAGS) -mcpu=$(CPU) -march=$(ARCH) --specs=$(SPECS)
 	CPPFLAGS = -DMSP432 $(INCLUDES) #Prepro flags
-	LDFLAGS = -Wl,-Map=$().map 	
+	LDFLAGS = -Wl,-Map=$(TARGET).map 	
 	# etc
 endif
 
-OBJS = $(SOURCES : .c=.o)
-DEPS = $(SOURCES : .c=.d)
-ASM = $(SOURCES : .c=.asm)
-PRE = $(SOURCES : .c=.i)
+
+OBJS=$(SOURCES:.c=.o)
+DEPS=$(SOURCES:.c=.d)
+ASM=$(SOURCES:.c=.asm)
+PRE=$(SOURCES:.c=.i)
 
 
-%.i : %.c
-	$(CC) -E $< $(CPPFLAGS) 
+%.i:%.c
+	$(CC) -E $< $(CPPFLAGS) -o $@
 
-%d : %.c
+%.d:%.c
 	$(CC) -E -M $< $(CPPFLAGS) -o $@
 
-%.o : %.c
-	$(CC) -c $< $(CFLAGS) -o $@
+%.o:%.c
+	$(CC) -c $< $(CPPFLAGS) $(CFLAGS) -o $@
 
-%.asm : %.c
+%.asm:%.c
 	$(CC) -S $< $(CPPFLAGS) $(CFLAGS) -o $@
 
-.PHONY : compile-all
+.PHONY :compile-all
 compile-all : $(OBJS)
 
-.PHONY: build
+.PHONY:build
 build : $(DEPS)
 build : $(TARGET).out
 
@@ -101,6 +101,6 @@ $(TARGET).out: $(OBJS)
 	$(CC) $(OBJS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 
 
-.PHONY: clean
+.PHONY:clean
 clean :
 	rm -f $(OBJS) $(DEPS) $(ASM) $(PRE) $(TARGET).out $(TARGET).map
