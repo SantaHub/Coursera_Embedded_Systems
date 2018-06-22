@@ -44,11 +44,13 @@ ifeq ($(PLATFORM),HOST)
 	CFLAGS=$(FLAGS) 
 	CPPFLAGS=-DHOST $(INCLUDES) #Prepro flags
 	LDFLAGS = -Wl,-Map=$(TARGET).map 
+	SIZE=size
 	# etc
 endif
 
 ifeq ($(PLATFORM),MSP432)
 	CC=arm-none-eabi-gcc
+	SIZE=arm-none-eabi-size
 	LINKER_FILE= -T ../msp432p401r.lds
 
 	CPU=cortex-m4 
@@ -99,7 +101,7 @@ build : $(TARGET).out
 
 $(TARGET).out: $(OBJS)
 	$(CC) $(OBJS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-
+	$(SIZE) $@
 
 .PHONY:clean
 clean :
